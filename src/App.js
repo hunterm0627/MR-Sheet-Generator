@@ -1,25 +1,21 @@
-import logo from './logo.svg';
+import React from 'react';
+import DataProcessor from './DataProcessor';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import Warning from './components/Warning';
 import './App.css';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div id="root">
+      <Header />
+      <Warning message="This application is currently in development. Use with discretion." />
+      <div className="container-fluid" style={{ paddingLeft: '100px', paddingRight: '100px' }}>
+        <DataProcessor />
+      </div>
+      <Footer />
     </div>
   );
-}
+};
 
 export default App;
