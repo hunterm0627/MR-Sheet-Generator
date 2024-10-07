@@ -2,7 +2,7 @@ import React from 'react';
 
 const DataTable = ({ mergedData, showProcessedNotes, hideComments, permitNumber }) => {
   
-  // Helper function to get the current date in dd/mm/yyyy format
+  // Helper function to get the current date in mm/dd/yyyy format
   const getCurrentDate = () => {
     const today = new Date();
     const day = String(today.getDate()).padStart(2, '0');
@@ -30,8 +30,13 @@ const DataTable = ({ mergedData, showProcessedNotes, hideComments, permitNumber 
             <tr key={index}>
               <td><strong>{index + 1}</strong></td>
               <td>
+                {/* Display Qwest if the owner is Qwest or Foreign (Qwest) */}
+                {row.owner === 'Qwest' || row.owner === 'Foreign (Qwest)' ? (
+                  <div style={{ fontWeight: 'bold' }}>Qwest</div>
+                ) : null}
                 <strong>{row.poleNumber}</strong>
-                {row.isPoleReplacement && (
+                {/* Display NO ACCESS in red if MR_type is No Access or assessment is true */}
+                {(row.MR_type === 'No Access' || (row.no_access && row.no_access.assessment)) && (
                   <div style={{ color: 'red', fontStyle: 'italic' }}>
                     NO ACCESS
                   </div>
@@ -67,9 +72,13 @@ const DataTable = ({ mergedData, showProcessedNotes, hideComments, permitNumber 
                       <li>All licensees to ensure equipment/cable is properly tagged for identification.</li>
                       <li>All licensees to ensure strand is properly bonded to PNM ground.</li>
                       <li>All licensees to maintain midspan clearances per NESC.</li>
-                      {row.isPoleReplacement && <li>Note: This pole is a replacement.</li>}
-                      {row.grounding === 'Grounded' && <li>Grounding assessment: Grounded.</li>}
-                      {row.grounding === 'Broken Ground' && <li style={{ color: 'blue' }}>Separate ticket to PNM to repair broken pole ground.</li>}
+                      
+                      {row.grounding === 'Not Grounded' && (
+                        <li style={{ color: 'blue' }}>Separate ticket to PNM to replace missing pole ground.</li>
+                      )}
+                      {row.grounding === 'Broken Ground' && (
+                        <li style={{ color: 'blue' }}>Separate ticket to PNM to repair broken pole ground.</li>
+                      )}
                     </ul>
                   </>
                 )}

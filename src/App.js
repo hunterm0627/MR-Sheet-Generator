@@ -7,12 +7,17 @@ import './App.css';
 
 const App = () => {
   return (
-    <div id="root">
+    <div className="app-container">
       <Header />
       <Warning message="This application is currently in development. Use with discretion." />
-      <div className="container-fluid" style={{ paddingLeft: '100px', paddingRight: '100px' }}>
-        <DataProcessor />
+      
+      {/* Main content area */}
+      <div className="">
+        <div className="container-fluid" style={{ paddingLeft: '100px', paddingRight: '100px' }}>
+          <DataProcessor />
+        </div>
       </div>
+
       <Footer />
     </div>
   );

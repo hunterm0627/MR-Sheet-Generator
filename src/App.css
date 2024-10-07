@@ -58,12 +58,13 @@ body {
   flex: 1;
 }
 
+/* 
 .footer {
   font-size: 1.2rem;
   padding: 20px 0;
   background-color: #343a40;
   color: #f8f9fa;
-}
+} */
 
 .bg-dark {
   background-color: #343a40 !important;
@@ -84,4 +85,33 @@ body {
 .drop-area.dragover {
   border-color: #198754;
   background-color: #d4edda;
+}
+
+/* Ensure the app container takes the full viewport height */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Make the content container grow to fill available space */
+.content-container {
+  flex: 1;
+  overflow-y: auto;
+  /* Add vertical scroll if content overflows */
+  padding-bottom: 60px;
+  /* Prevent overlap with the footer */
+}
+
+/* Footer styles */
+.footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: #007bff;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  z-index: 1000;
 }

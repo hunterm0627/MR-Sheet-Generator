@@ -1,4 +1,6 @@
 export const parseMakeReadyNotes = (makeReadyNotes) => {
+    const debug = true; // Set to true to enable logs
+
     const parseHeight = (heightStr) => {
         if (!heightStr) return 0;
         const match = heightStr.match(/(\d+)['']?-?(\d+)?[""']?/);
@@ -10,84 +12,79 @@ export const parseMakeReadyNotes = (makeReadyNotes) => {
         return 0;
     };
 
-    const formatHeight = (inches) => {
-        const feet = Math.floor(inches / 12);
-        const remainingInches = inches % 12;
-        return `${feet}'-${remainingInches}"`;
-    };
-
-    // Retaining the positive or negative height difference for determining 'above' or 'below'
     const calculateHeightDifference = (lowPowerHeight, attachmentHeight) => {
         return parseHeight(lowPowerHeight) - parseHeight(attachmentHeight);
     };
 
     const processNote = (note, lowPowerInfo) => {
-        if (!note) return "Invalid note";
+        if (!note || typeof note !== 'string') return "Invalid note";
 
-        console.log("Processing note:", note);
+        if (debug) console.log("Processing note:", note);
 
-        // Match the company, action (lower/raise), initial height, and final target height (B)
-        const companyMatch = note.match(/(GigaPower|Comcast|Centurylink|COMCAST CABLE|UPN|MCI|Zayo)[\s\w]* (lower|raise|attach|at) (.*?) (lower|raise)? (\d+['']?-?\d*[""']?) to (\d+['']?-?\d*[""']?)/i);
-
-        if (companyMatch) {
-            const [, company, action, details, , , targetHeightStr] = companyMatch;
-            const simplifiedCompany = simplifyCompanyName(company);
-            const targetHeight = parseHeight(targetHeightStr); // This is the "B" value in inches
-            const lowPowerHeight = parseHeight(lowPowerInfo.height); // Convert low power height to inches
-
-            // Subtract B (target height) from the low power height
-            const heightDifference = lowPowerHeight - targetHeight;
-
-            // Determine action and preposition based on height difference
-            const actionWord = heightDifference > 0 ? 'lower' : 'raise';
-            const preposition = heightDifference > 0 ? 'below' : 'above';
-            const formattedHeightDifference = Math.abs(heightDifference); // We want the absolute value for the difference
-
-            // Return phrase with correct grammar
-            switch (simplifiedCompany) {
-                case 'Gigapower':
-                    return `Gigapower to install (1) new ***Capafo Here***ct fiber to pole ${formattedHeightDifference}" ${preposition} ${lowPowerInfo.type}`;
-                case 'Comcast':
-                case 'UPN':
-                case 'MCI':
-                case 'Zayo':
-                case 'Centurylink':
-                    return `${simplifiedCompany} to ${actionWord} existing attachment${actionWord === 'lower' ? 's' : ''} to ${formattedHeightDifference}" ${preposition} ${lowPowerInfo.type}`;
-                default:
-                    return `${simplifiedCompany} to ${actionWord} existing attachment to ${formattedHeightDifference}" ${preposition} ${lowPowerInfo.type}`;
+        // Check for pole replacement
+        if (note.toLowerCase().includes('pole top: replace')) {
+            const match = note.match(/Replace (\d+)' class \w+ pole with (\d+)' class (\d+) pole/);
+            if (match) {
+                return {
+                    text: `PNM to replace pole with ${match[2]}'-${match[3]}" due to (***insert reason here***)`,
+                    isRed: true // Marking this note to be displayed in red text
+                };
             }
         }
 
-        // Re-sagging com lines
+        // Exclude "Low Power" notes from the final comments
+        if (note.toLowerCase().includes('low power')) {
+            return null;
+        }
+
+        // Regular expression to match company names and actions
+        const companyMatch = note.match(/(GigaPower|Comcast|Centurylink|UPN|MCI|Zayo)[\s\w]* (lower|raise|attach|at) (.*?) (lower|raise)? (\d+['']?-?\d*[""']?) to (\d+['']?-?\d*[""']?)/i);
+        
+        if (companyMatch) {
+            // Removed 'action' and 'details' from destructuring as they are not used
+            const [, company, , , , targetHeightStr] = companyMatch;
+            const simplifiedCompany = simplifyCompanyName(company);
+            const targetHeight = parseHeight(targetHeightStr);
+            const lowPowerHeight = parseHeight(lowPowerInfo.height);
+
+            const heightDifference = lowPowerHeight - targetHeight;
+            const actionWord = heightDifference > 0 ? 'lower' : 'raise';
+            const preposition = heightDifference > 0 ? 'below' : 'above';
+            const formattedHeightDifference = Math.abs(heightDifference);
+
+            // Detailed else-if structure for handling different scenarios
+            if (simplifiedCompany === 'Gigapower') {
+                return `Gigapower to install (1) new ***Capafo Here***ct fiber to pole ${formattedHeightDifference}" ${preposition} ${lowPowerInfo.type}`;
+            } else if (['Comcast', 'UPN', 'MCI', 'Zayo', 'Centurylink'].includes(simplifiedCompany)) {
+                return `${simplifiedCompany} to ${actionWord} existing attachment${actionWord === 'lower' ? 's' : ''} to ${formattedHeightDifference}" ${preposition} ${lowPowerInfo.type}`;
+            } else {
+                // Default case
+                return `${simplifiedCompany} to ${actionWord} existing attachment to ${formattedHeightDifference}" ${preposition} ${lowPowerInfo.type}`;
+            }
+        }
+
+        // Handle other specific cases
         if (note.toLowerCase().includes('com drop') || note.toLowerCase().includes('re sag com')) {
             return "Re sag com lines.";
         }
 
-        // Handling pole replacements
-        if (note.toLowerCase().includes('pole top: replace')) {
-            const match = note.match(/Replace (\d+)' class \w+ pole with (\d+)' class (\d+) pole/);
-            if (match) {
-                return `PNM to replace pole with ${match[2]}'-${match[3]}" due to (***insert reason here***)`;
-            }
-        }
-
-        return note;
+        return note; // Return the original note if no conditions match
     };
-
-
-
 
     const simplifyCompanyName = (company) => {
         if (!company) return 'Unknown Company';
-        if (company.toLowerCase().includes('gigapower')) return 'Gigapower';
-        if (company.toLowerCase().includes('comcast')) return 'Comcast';
-        if (company.toLowerCase().includes('centurylink')) return 'Centurylink';
-        if (company.toLowerCase().includes('brightspeed')) return 'Brightspeed';
+        const lowerCompany = company.toLowerCase();
+        if (lowerCompany.includes('gigapower')) return 'Gigapower';
+        if (lowerCompany.includes('comcast')) return 'Comcast';
+        if (lowerCompany.includes('centurylink')) return 'Centurylink';
+        if (lowerCompany.includes('upn')) return 'UPN';
+        if (lowerCompany.includes('mci')) return 'MCI';
+        if (lowerCompany.includes('zayo')) return 'Zayo';
         return company;
     };
 
     if (!makeReadyNotes || typeof makeReadyNotes !== 'string') {
-        console.error("Invalid makeReadyNotes:", makeReadyNotes);
+        if (debug) console.error("Invalid makeReadyNotes:", makeReadyNotes);
         return ["Invalid make ready notes"];
     }
 
@@ -102,22 +99,28 @@ export const parseMakeReadyNotes = (makeReadyNotes) => {
         }
     }
 
-    console.log("Low Power Info:", lowPowerInfo);
+    if (debug) console.log("Low Power Info:", lowPowerInfo);
 
     const processedNotes = notes.map(note => {
         try {
             return processNote(note, lowPowerInfo);
         } catch (error) {
-            console.error("Error processing note:", note, error);
+            if (debug) console.error("Error processing note:", note, error);
             return "Error processing note";
         }
-    });
+    }).filter(note => note !== null); // Filter out null notes (e.g., "Low Power")
 
-    // Add pole replacement note if applicable
-    const poleReplacementNote = processedNotes.find(note => note.includes('PNM to replace pole'));
+    // Ensure pole replacement note is placed under the default liability notes
+    const poleReplacementNote = processedNotes.find(note => typeof note === 'object' && note.isRed);
     if (poleReplacementNote) {
         processedNotes.push(poleReplacementNote);
     }
 
-    return processedNotes;
+    // Convert all notes to strings before returning
+    return processedNotes.map(note => {
+        if (typeof note === 'object' && note.text) {
+            return note.text; // Extract text if it's an object with text property
+        }
+        return note; // Return the note directly if it's already a string
+    });
 };

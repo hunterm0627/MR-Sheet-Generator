@@ -28,6 +28,7 @@ const DataProcessor = () => {
   const [constructionCoordinator, setConstructionCoordinator] = useState('');
   const [address, setAddress] = useState('');
   const [currentDate, setCurrentDate] = useState('');
+  const [userEmail, setUserEmail] = useState(''); // New state for userEmail
 
   useEffect(() => {
     const date = new Date();
@@ -41,6 +42,8 @@ const DataProcessor = () => {
 
     setIsLoading(true);
     setCsvFileName(file.name);
+
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     Papa.parse(file, {
       complete: (results) => {
@@ -63,6 +66,8 @@ const DataProcessor = () => {
 
     setIsLoading(true);
     setJsonFileName(file.name);
+
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -89,11 +94,15 @@ const DataProcessor = () => {
     if (csvData && jsonData) {
       const jsonNodesMap = new Map();
       Object.entries(jsonData.nodes).forEach(([key, node]) => {
-        const scid = node.attributes.scid?.auto_button;
+        const scid = node.attributes.scid ? Object.values(node.attributes.scid)[0].replace(/^0+/, '') : null;
         if (scid) {
           jsonNodesMap.set(scid, node);
         }
       });
+
+      console.groupCollapsed('JSON Nodes Map');
+      console.log(Array.from(jsonNodesMap.entries()));
+      console.groupEnd();
 
       const emptyRows = [];
       const validCsvRows = csvData.filter((csvRow, index) => {
@@ -115,11 +124,32 @@ const DataProcessor = () => {
         setEmptyScidRows(emptyRows);
       }
 
+      console.groupCollapsed('NoteParser');
+
       const combined = validCsvRows.map((csvRow) => {
         const scid = csvRow.SCID.replace(/^0+/, '');
-        const jsonNode = jsonNodesMap.get(csvRow.SCID);
-        const mrNote = Object.values(jsonNode?.attributes?.mr_note || {})[0] || 'N/A';
-        const poleNumber = jsonNode?.attributes?.PoleNumber?.assessment || 'N/A';
+        const jsonNode = jsonNodesMap.get(scid);
+
+        if (!jsonNode) {
+          console.error(`No matching JSON node found for SCID: ${scid}`);
+          return {
+            scid,
+            poleNumber: 'N/A',
+            mrNote: 'N/A',
+            transformedMakeReadyNotes: 'N/A',
+            isPoleReplacement: false,
+            grounding: 'N/A',
+          };
+        }
+
+        const mrNote = jsonNode?.attributes?.mr_note
+          ? Object.values(jsonNode.attributes.mr_note)[0] || 'N/A'
+          : 'N/A';
+
+        const poleNumber = jsonNode?.attributes?.PoleNumber
+          ? jsonNode.attributes.PoleNumber.assessment || 'N/A'
+          : 'N/A';
+
         const transformedMakeReadyNotes = parseMakeReadyNotes(csvRow['Make ready notes'] || '');
 
         const isPoleReplacement = jsonNode?.attributes?.MR_type === 'Pole Replacement';
@@ -135,8 +165,13 @@ const DataProcessor = () => {
         };
       });
 
+      console.groupEnd();
+
+      console.groupCollapsed('Merged Data');
+      console.log(combined);
+      console.groupEnd();
+
       setMergedData(combined);
-      console.log('Merged data:', combined); // Add this line for debugging
     }
   }, [csvData, jsonData]);
 
@@ -157,6 +192,9 @@ const DataProcessor = () => {
             jsonFileName={jsonFileName}
             csvLoaded={csvLoaded}
             jsonLoaded={jsonLoaded}
+            currentDate={currentDate}
+            userEmail={userEmail} // Pass userEmail state
+            setUserEmail={setUserEmail} // Pass setUserEmail function
           />
         </div>
 
@@ -178,7 +216,6 @@ const DataProcessor = () => {
             radioOption={radioOption}
             isLoading={isLoading}
             permitNumber={permitNumber}
-            currentDate={currentDate}
           />
         </div>
       </div>

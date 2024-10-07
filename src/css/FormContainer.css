@@ -1,0 +1,19 @@
+/* Ensure the form-container takes full height of the viewport */
+.form-container {
+    min-height: calc(100vh - 60px);
+    /* Adjust the height to fit the footer */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Fix the footer at the bottom */
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+}

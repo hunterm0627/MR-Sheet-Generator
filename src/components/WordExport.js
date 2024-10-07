@@ -13,98 +13,115 @@ function escapeSpecialChars(text) {
     .replace(/'/g, '&#039;');
 }
 
-const WordExport = ({ data, templatePath, blankTemplatePath, showProcessedNotes, exportEmptyNotes, name, coordinator, permitNumber, address, date }) => {
-  
-  const exportToWord = async () => {
-    try {
-      if (!data || data.length === 0) {
-        console.error("No data available to export:", data);
-        alert("No data available to export. Please ensure both CSV and JSON files are loaded and processed.");
-        return;
-      }
+// Refactor exportToWord to be a named function that can be directly exported
+export const exportToWord = async ({
+  data,
+  templatePath,
+  blankTemplatePath,
+  showProcessedNotes,
+  exportEmptyNotes,
+  name,
+  coordinator,
+  permitNumber,
+  address,
+  date,
+  userEmail // Renamed to userEmail
+}) => {
+  try {
+    if (!data || data.length === 0) {
+      console.error("No data available to export:", data);
+      alert("No data available to export. Please ensure both CSV and JSON files are loaded and processed.");
+      return;
+    }
 
-      console.log("Exporting data:", data);
+    console.log("Exporting data:", data);
+    
+    const response = await fetch(exportEmptyNotes ? blankTemplatePath : templatePath);
+    if (!response.ok) throw new Error('Network response was not ok');
 
-      const response = await fetch(exportEmptyNotes ? blankTemplatePath : templatePath);
-      if (!response.ok) throw new Error('Network response was not ok');
+    const arrayBuffer = await response.arrayBuffer();
+    const zip = new PizZip(arrayBuffer);
+    
+    const doc = new Docxtemplater(zip, { 
+      paragraphLoop: true, 
+      linebreaks: true
+    });
 
-      const arrayBuffer = await response.arrayBuffer();
-      const zip = new PizZip(arrayBuffer);
+    const results = data.map((item, index) => {
+      console.log(`Processing item ${index}:`, item);
       
-      const doc = new Docxtemplater(zip, { 
-        paragraphLoop: true, 
-        linebreaks: true
-      });
+      let comments = [];
+      if (!exportEmptyNotes) {
+        let notes = showProcessedNotes ? item.mrNote : item.transformedMakeReadyNotes;
 
-      const results = data.map((item, index) => {
-        console.log(`Processing item ${index}:`, item);  // Debug log
-        
-        let comments = [];
-        if (!exportEmptyNotes) {
-          let notes = showProcessedNotes ? item.mrNote : item.transformedMakeReadyNotes;
-
-          // Ensure notes is an array
-          if (typeof notes === 'string') {
-            notes = notes.split('\n').filter(note => note.trim() !== '');
-          } else if (!Array.isArray(notes)) {
-            console.warn(`Notes for item ${index} is neither a string nor an array:`, notes);
-            notes = [];
-          }
-
-          comments = [
-            ...notes,
-            "All licensees to ensure equipment/cable is properly tagged for identification.",
-            "All licensees to ensure strand is properly bonded to PNM ground.",
-            "All licensees to maintain midspan clearances per NESC.",
-            item.isPoleReplacement ? "Note: This pole is a replacement." : null,
-            item.grounding === 'Grounded' ? "Grounding assessment: Grounded." : null,
-            item.grounding === 'Broken Ground' ? "Separate ticket to PNM to repair broken pole ground." : null
-          ].filter(Boolean);  // Remove null items
+        // Ensure notes is an array
+        if (typeof notes === 'string') {
+          notes = notes.split('\n').filter(note => note.trim() !== '');
+        } else if (!Array.isArray(notes)) {
+          console.warn(`Notes for item ${index} is neither a string nor an array:`, notes);
+          notes = [];
         }
 
-        return {
-          scid: (index + 1).toString(),
-          PoleNumber: escapeSpecialChars(item.poleNumber) || 'N/A',
-          noAccess: item.isPoleReplacement ? 'NO ACCESS' : '',
-          comments: comments
-        };
-      });
+        comments = [
+          ...notes,
+          "All licensees to ensure equipment/cable is properly tagged for identification.",
+          "All licensees to ensure strand is properly bonded to PNM ground.",
+          "All licensees to maintain midspan clearances per NESC.",
+          item.isPoleReplacement ? "Note: This pole is a replacement." : null,
+          item.grounding === 'Grounded' ? "Grounding assessment: Grounded." : null,
+          item.grounding === 'Broken Ground' ? "Separate ticket to PNM to repair broken pole ground." : null
+        ].filter(Boolean); // Remove null items
+      }
 
-      const templateData = { 
-        results,
-        date: date || new Date().toLocaleDateString('en-US'),
-        name: escapeSpecialChars(name) || '',
-        coordinator: escapeSpecialChars(coordinator) || '',
-        permitNumber: escapeSpecialChars(permitNumber ? permitNumber.replace(/[()]/g, '') : ''), // Remove parentheses
-        address: escapeSpecialChars(address) || ''
+      return {
+        scid: (index + 1).toString(),
+        PoleNumber: escapeSpecialChars(item.poleNumber) || 'N/A',
+        noAccess: item.isPoleReplacement ? 'NO ACCESS' : '',
+        comments: comments
       };
+    });
 
-      console.log("Template data:", templateData);
+    // Construct the email address from userEmail
+    const recipientEmail = userEmail ? `${userEmail}@techserv.com` : '';
 
-      doc.setData(templateData);
+    const templateData = { 
+      results,
+      date: date || new Date().toLocaleDateString('en-US'),
+      name: escapeSpecialChars(name) || '',
+      coordinator: escapeSpecialChars(coordinator) || '',
+      permitNumber: escapeSpecialChars(permitNumber ? permitNumber.replace(/[()]/g, '') : ''), // Remove parentheses
+      address: escapeSpecialChars(address) || '',
+      userEmail: recipientEmail // Include the full email address
+    };
 
-      doc.render();
+    // Log the template data to verify the email
+    console.log("Template data:", templateData);
 
-      const out = doc.getZip().generate({ type: 'blob' });
-      saveAs(out, exportEmptyNotes ? 'blank_output.docx' : 'output.docx');
-    } catch (error) {
-      console.error("Error exporting to Word:", error);
-      if (error.properties && error.properties.errors) {
-        console.error("Detailed error information:");
-        error.properties.errors.forEach((err, index) => {
-          console.error(`Error ${index + 1}:`, err);
-          console.error("Context:", error.properties.context[index]);
-        });
-      }
-      if (error.stack) {
-        console.error("Stack trace:", error.stack);
-      }
-      alert("Error exporting to Word. Please check the console for details.");
+    doc.setData(templateData);
+    doc.render();
+
+    const out = doc.getZip().generate({ type: 'blob' });
+    saveAs(out, exportEmptyNotes ? 'blank_output.docx' : 'output.docx');
+  } catch (error) {
+    console.error("Error exporting to Word:", error);
+    if (error.properties && error.properties.errors) {
+      console.error("Detailed error information:");
+      error.properties.errors.forEach((err, index) => {
+        console.error(`Error ${index + 1}:`, err);
+        console.error("Context:", error.properties.context[index]);
+      });
     }
-  };
+    if (error.stack) {
+      console.error("Stack trace:", error.stack);
+    }
+    alert("Error exporting to Word. Please check the console for details.");
+  }
+};
 
+// Keep the button component as it is
+const WordExport = (props) => {
   return (
-    <button onClick={exportToWord} className="btn btn-success mt-3">
+    <button onClick={() => exportToWord(props)} className="btn btn-success mt-3">
       Export to Word
     </button>
   );

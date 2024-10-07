@@ -3,15 +3,17 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 100%;
-    /* Ensure it fills the height of the container */
     text-align: center;
+    padding: 20px;
+    /* Add padding for spacing */
+    /* Remove height and overflow properties */
 }
 
 .data-preview-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
-    /* Ensure the container takes full height */
+    padding: 20px;
+    /* Add padding for spacing */
+    /* Remove height and overflow properties */
 }

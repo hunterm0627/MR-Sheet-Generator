@@ -1,6 +1,19 @@
 import React from 'react';
 
-const ExportForm = ({ date, setDate, name, setName, constructionCoordinator, setConstructionCoordinator, permitNumber, setPermitNumber, address, setAddress }) => {
+const ExportForm = ({
+  date,
+  setDate,
+  name,
+  setName,
+  constructionCoordinator,
+  setConstructionCoordinator,
+  permitNumber,
+  setPermitNumber,
+  address,
+  setAddress,
+  userEmail,
+  setUserEmail, // Include userEmail and its setter
+}) => {
   return (
     <div>
       <div className="form-floating mb-3">
@@ -61,6 +74,19 @@ const ExportForm = ({ date, setDate, name, setName, constructionCoordinator, set
           onChange={(e) => setAddress(e.target.value)}
         />
         <label htmlFor="floatingAddress">Address</label>
+      </div>
+
+      {/* New User Email Field */}
+      <div className="form-floating mb-3">
+        <input
+          type="text"
+          className="form-control"
+          id="floatingUserEmail"
+          placeholder="User Email"
+          value={userEmail}
+          onChange={(e) => setUserEmail(e.target.value)}
+        />
+        <label htmlFor="floatingUserEmail">User Email</label>
       </div>
     </div>
   );

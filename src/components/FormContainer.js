@@ -1,21 +1,24 @@
 import React from 'react';
 
 const FormContainer = ({
-    handleCSVImport,
-    handleJSONImport,
-    csvFileName,
-    jsonFileName,
-    csvLoaded,
-    jsonLoaded,
     name,
     setName,
     constructionCoordinator,
     setConstructionCoordinator,
     address,
     setAddress,
+    handleCSVImport,
+    handleJSONImport,
+    csvFileName,
+    jsonFileName,
+    csvLoaded,
+    jsonLoaded,
+    currentDate,
+    userEmail,
+    setUserEmail,
 }) => {
     return (
-        <div className="form-container">
+        <div className="border rounded p-3 mb-4">
             <form>
                 {/* File Upload Fields */}
                 <div className="mb-3">
@@ -41,7 +44,8 @@ const FormContainer = ({
                     />
                     {jsonLoaded && <small className="text-success">{jsonFileName} uploaded successfully.</small>}
                 </div>
-                {/* Other form fields */}
+
+                {/* Name Field */}
                 <div className="mb-3">
                     <label htmlFor="name" className="form-label">Name</label>
                     <input
@@ -53,6 +57,7 @@ const FormContainer = ({
                     />
                 </div>
 
+                {/* Construction Coordinator Field */}
                 <div className="mb-3">
                     <label htmlFor="constructionCoordinator" className="form-label">Construction Coordinator</label>
                     <input
@@ -64,6 +69,7 @@ const FormContainer = ({
                     />
                 </div>
 
+                {/* Address Field */}
                 <div className="mb-3">
                     <label htmlFor="address" className="form-label">Address</label>
                     <input
@@ -72,6 +78,41 @@ const FormContainer = ({
                         id="address"
                         value={address}
                         onChange={(e) => setAddress(e.target.value)}
+                    />
+                </div>
+
+                {/* New User Email Field */}
+                <div className="mb-3">
+                    <label htmlFor="userEmail" className="form-label">User Email</label>
+                    <div className="input-group">
+                        <input
+                            type="text"
+                            className="form-control"
+                            id="userEmail"
+                            placeholder="Recipient's username"
+                            aria-label="Recipient's username"
+                            aria-describedby="basic-addon2"
+                            value={userEmail}
+                            onChange={(e) => {
+                                setUserEmail(e.target.value); // Update the state
+                                console.log("Updated userEmail:", e.target.value); // Log the input change
+                            }}
+                        />
+                        <div className="input-group-append">
+                            <span className="input-group-text" id="basic-addon2">@techserv.com</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Date Field */}
+                <div className="mb-3">
+                    <label htmlFor="date" className="form-label">Date</label>
+                    <input
+                        type="date"
+                        className="form-control"
+                        id="date"
+                        value={currentDate}
+                        readOnly
                     />
                 </div>
             </form>

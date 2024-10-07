@@ -37,7 +37,7 @@
 
 @media (max-width: 768px) {
     .header-title {
-        font-size: 1.5rem;
+        font-size: 1.rem;
         /* Smaller font size for mobile */
     }
 

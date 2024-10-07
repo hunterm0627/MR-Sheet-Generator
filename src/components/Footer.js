@@ -12,19 +12,19 @@ const Footer = () => {
 
   return (
     <>
-      <footer className="footer bg-primary text-white text-center py-3 mt-4">
+      <footer className="footer bg-primary text-white text-center py-2 mt-4">
         {/* <img 
           src={logo} 
           alt="TechServ Logo" 
           style={{ height: '30px', marginBottom: '0px' }} 
         /> */}
-        <p className="mb-0" style={{ fontSize: '1rem', lineHeight: '1.5' }}>
+        <p className="mb-0" style={{ fontSize: '.8rem', lineHeight: '1.5' }}>
           Developed by <strong>Hunter Mooney</strong> | Powered by React
           <FontAwesomeIcon icon={faReact} className="ms-1" />
         </p>
-        <p className="mt-1" style={{ fontSize: '0.9rem', marginBottom: '0' }}>
+        <p className="mt-1" style={{ fontSize: '0.8rem', marginBottom: '0' }}>
           Version 0.1.0 |
-          <a href="https://github.com/your-repo-url" target="_blank" rel="noopener noreferrer" className="text-white">
+          <a href="https://github.com/hunterm0627/MR-Sheet-Generator/tree/master" target="_blank" rel="noopener noreferrer" className="text-white">
             <FontAwesomeIcon icon={faGithub} className="ms-1" /> GitHub
           </a> |
           <span onClick={handleShowNotes} className="text-white" style={{ cursor: 'pointer' }}> Notes</span>
