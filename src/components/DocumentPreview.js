@@ -2,7 +2,7 @@ import React from 'react';
 import Logo from '../assets/logos/PNMlogo-ColorPos.png';
 import '../css/DocumentPreview.css';
 
-const DocumentPreview = ({ name, constructionCoordinator, address, date, permitNumber }) => {
+const DocumentPreview = ({ name, constructionCoordinator, address, date, permitNumber, engineer }) => {
     const placeholderStyle = {
         color: '#999',
         fontStyle: 'italic'
@@ -27,6 +27,7 @@ const DocumentPreview = ({ name, constructionCoordinator, address, date, permitN
             <div className="document-content mt-3">
                 <p className="date">Date: <PlaceholderText actualText={date}>MM/DD/YYYY</PlaceholderText></p>
                 <p><strong>Name:</strong> <PlaceholderText actualText={name}>Name goes here</PlaceholderText></p>
+                <p><strong>Email:</strong> <PlaceholderText actualText={engineer}>username</PlaceholderText>@techserv.com</p> {/* Engineer with domain */}
                 <p><strong>Construction Coordinator:</strong> <PlaceholderText actualText={constructionCoordinator}>Coordinator goes here</PlaceholderText></p>
                 <p><strong>Subject:</strong> <PlaceholderText actualText={permitNumber}>Permit number goes here</PlaceholderText></p>
                 <p><strong>Address:</strong> <PlaceholderText actualText={address}>Address goes here</PlaceholderText></p>

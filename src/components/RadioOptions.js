@@ -13,7 +13,8 @@ const RadioOptions = ({
     coordinator,
     permitNumber,
     address,
-    date
+    date, // Capture the date
+    engineer // Include engineer here
 }) => {
     const bothFilesLoaded = csvLoaded && jsonLoaded;
     const templatePath = './template.docx';
@@ -27,9 +28,7 @@ const RadioOptions = ({
 
     return (
         <div className="d-flex flex-column align-items-center mb-3">
-            {/* Flex container for DocumentPreview and radio buttons */}
             <div className="d-flex justify-content-between mb-3" style={{ width: '100%' }}>
-                {/* DocumentPreview */}
                 <div style={{ flex: 1, marginRight: '20px', maxWidth: '400px' }}>
                     <h4>Page One</h4>
                     <DocumentPreview
@@ -37,7 +36,8 @@ const RadioOptions = ({
                         constructionCoordinator={coordinator || ''}
                         address={address || ''}
                         permitNumber={permitNumber || ''}
-                        date={date || ''}
+                        date={date || ''} // Pass date to DocumentPreview
+                        engineer={engineer || ''} // Pass engineer to DocumentPreview
                     />
                 </div>
 
@@ -84,6 +84,9 @@ const RadioOptions = ({
                         />
                         <label className="custom-control-label" htmlFor="blank">QC - Blank</label>
                     </div>
+                </div>
+            </div>
+
             {/* Export Button */}
             {bothFilesLoaded && (
                 <WordExport
@@ -96,12 +99,10 @@ const RadioOptions = ({
                     coordinator={coordinator}
                     permitNumber={permitNumber}
                     address={address}
-                    date={date}
+                    date={date} // Pass date to WordExport
+                    engineer={engineer} // Pass engineer to WordExport
                 />
             )}
-                </div>
-            </div>
-
         </div>
     );
 };

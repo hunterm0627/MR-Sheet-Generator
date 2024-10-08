@@ -28,7 +28,7 @@ const DataProcessor = () => {
   const [constructionCoordinator, setConstructionCoordinator] = useState('');
   const [address, setAddress] = useState('');
   const [currentDate, setCurrentDate] = useState('');
-  const [userEmail, setUserEmail] = useState(''); // New state for userEmail
+  const [engineer, setEngineer] = useState(''); // Using engineer instead of userEmail
 
   useEffect(() => {
     const date = new Date();
@@ -36,6 +36,7 @@ const DataProcessor = () => {
     setCurrentDate(formattedDate);
   }, []);
 
+  // CSV import handler
   const handleCSVImport = async (files) => {
     const file = files[0];
     if (!file) return;
@@ -60,6 +61,7 @@ const DataProcessor = () => {
     });
   };
 
+  // JSON import handler
   const handleJSONImport = async (files) => {
     const file = files[0];
     if (!file) return;
@@ -90,7 +92,9 @@ const DataProcessor = () => {
     reader.readAsText(file);
   };
 
+  // Data processing after both CSV and JSON loaded
   useEffect(() => {
+    console.log("Engineer State:", engineer); // Log engineer state for debugging
     if (csvData && jsonData) {
       const jsonNodesMap = new Map();
       Object.entries(jsonData.nodes).forEach(([key, node]) => {
@@ -100,16 +104,10 @@ const DataProcessor = () => {
         }
       });
 
-      console.groupCollapsed('JSON Nodes Map');
-      console.log(Array.from(jsonNodesMap.entries()));
-      console.groupEnd();
-
       const emptyRows = [];
       const validCsvRows = csvData.filter((csvRow, index) => {
         const isEmptyRow = Object.values(csvRow).every((value) => !value.trim());
-        if (isEmptyRow) {
-          return false;
-        }
+        if (isEmptyRow) return false;
 
         if (!csvRow.SCID || csvRow.SCID.trim() === '') {
           emptyRows.push(index + 2);
@@ -124,56 +122,25 @@ const DataProcessor = () => {
         setEmptyScidRows(emptyRows);
       }
 
-      console.groupCollapsed('NoteParser');
-
       const combined = validCsvRows.map((csvRow) => {
         const scid = csvRow.SCID.replace(/^0+/, '');
         const jsonNode = jsonNodesMap.get(scid);
 
-        if (!jsonNode) {
-          console.error(`No matching JSON node found for SCID: ${scid}`);
-          return {
-            scid,
-            poleNumber: 'N/A',
-            mrNote: 'N/A',
-            transformedMakeReadyNotes: 'N/A',
-            isPoleReplacement: false,
-            grounding: 'N/A',
-          };
-        }
+        if (!jsonNode) return { scid, poleNumber: 'N/A', mrNote: 'N/A', transformedMakeReadyNotes: 'N/A', isPoleReplacement: false, grounding: 'N/A' };
 
-        const mrNote = jsonNode?.attributes?.mr_note
-          ? Object.values(jsonNode.attributes.mr_note)[0] || 'N/A'
-          : 'N/A';
-
-        const poleNumber = jsonNode?.attributes?.PoleNumber
-          ? jsonNode.attributes.PoleNumber.assessment || 'N/A'
-          : 'N/A';
-
+        const mrNote = jsonNode?.attributes?.mr_note ? Object.values(jsonNode.attributes.mr_note)[0] || 'N/A' : 'N/A';
+        const poleNumber = jsonNode?.attributes?.PoleNumber ? jsonNode.attributes.PoleNumber.assessment || 'N/A' : 'N/A';
         const transformedMakeReadyNotes = parseMakeReadyNotes(csvRow['Make ready notes'] || '');
 
         const isPoleReplacement = jsonNode?.attributes?.MR_type === 'Pole Replacement';
         const grounding = jsonNode?.attributes?.grounding?.assessment || 'N/A';
 
-        return {
-          scid,
-          poleNumber,
-          mrNote,
-          transformedMakeReadyNotes,
-          isPoleReplacement,
-          grounding,
-        };
+        return { scid, poleNumber, mrNote, transformedMakeReadyNotes, isPoleReplacement, grounding };
       });
-
-      console.groupEnd();
-
-      console.groupCollapsed('Merged Data');
-      console.log(combined);
-      console.groupEnd();
 
       setMergedData(combined);
     }
-  }, [csvData, jsonData]);
+  }, [csvData, jsonData, engineer]); // Monitor changes, including engineer
 
   return (
     <div className="container-fluid p-0" style={{ minHeight: '100vh' }}>
@@ -193,8 +160,8 @@ const DataProcessor = () => {
             csvLoaded={csvLoaded}
             jsonLoaded={jsonLoaded}
             currentDate={currentDate}
-            userEmail={userEmail} // Pass userEmail state
-            setUserEmail={setUserEmail} // Pass setUserEmail function
+            engineer={engineer} // Pass engineer
+            setEngineer={setEngineer} // Pass setEngineer
           />
         </div>
 
@@ -210,12 +177,14 @@ const DataProcessor = () => {
             permitNumber={permitNumber}
             address={address}
             date={currentDate}
+            engineer={engineer} // Pass engineer to RadioOptions
           />
           <DataPreview
             mergedData={mergedData}
             radioOption={radioOption}
             isLoading={isLoading}
             permitNumber={permitNumber}
+            engineer={engineer} // Pass engineer to DataPreview
           />
         </div>
       </div>

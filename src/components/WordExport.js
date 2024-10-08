@@ -13,7 +13,6 @@ function escapeSpecialChars(text) {
     .replace(/'/g, '&#039;');
 }
 
-// Refactor exportToWord to be a named function that can be directly exported
 export const exportToWord = async ({
   data,
   templatePath,
@@ -25,7 +24,7 @@ export const exportToWord = async ({
   permitNumber,
   address,
   date,
-  userEmail // Renamed to userEmail
+  engineer // Use engineer directly
 }) => {
   try {
     if (!data || data.length === 0) {
@@ -35,7 +34,8 @@ export const exportToWord = async ({
     }
 
     console.log("Exporting data:", data);
-    
+    console.log("Engineer Name:", engineer); // Log engineer for debugging
+
     const response = await fetch(exportEmptyNotes ? blankTemplatePath : templatePath);
     if (!response.ok) throw new Error('Network response was not ok');
 
@@ -44,24 +44,17 @@ export const exportToWord = async ({
     
     const doc = new Docxtemplater(zip, { 
       paragraphLoop: true, 
-      linebreaks: true
+      linebreaks: true,
+      nullGetter: function() {
+        return "";
+      }
     });
 
     const results = data.map((item, index) => {
-      console.log(`Processing item ${index}:`, item);
-      
       let comments = [];
       if (!exportEmptyNotes) {
         let notes = showProcessedNotes ? item.mrNote : item.transformedMakeReadyNotes;
-
-        // Ensure notes is an array
-        if (typeof notes === 'string') {
-          notes = notes.split('\n').filter(note => note.trim() !== '');
-        } else if (!Array.isArray(notes)) {
-          console.warn(`Notes for item ${index} is neither a string nor an array:`, notes);
-          notes = [];
-        }
-
+        notes = typeof notes === 'string' ? notes.split('\n').filter(note => note.trim() !== '') : [];
         comments = [
           ...notes,
           "All licensees to ensure equipment/cable is properly tagged for identification.",
@@ -70,7 +63,7 @@ export const exportToWord = async ({
           item.isPoleReplacement ? "Note: This pole is a replacement." : null,
           item.grounding === 'Grounded' ? "Grounding assessment: Grounded." : null,
           item.grounding === 'Broken Ground' ? "Separate ticket to PNM to repair broken pole ground." : null
-        ].filter(Boolean); // Remove null items
+        ].filter(Boolean); 
       }
 
       return {
@@ -81,21 +74,17 @@ export const exportToWord = async ({
       };
     });
 
-    // Construct the email address from userEmail
-    const recipientEmail = userEmail ? `${userEmail}@techserv.com` : '';
-
     const templateData = { 
       results,
       date: date || new Date().toLocaleDateString('en-US'),
       name: escapeSpecialChars(name) || '',
       coordinator: escapeSpecialChars(coordinator) || '',
-      permitNumber: escapeSpecialChars(permitNumber ? permitNumber.replace(/[()]/g, '') : ''), // Remove parentheses
+      permitNumber: escapeSpecialChars(permitNumber ? permitNumber.replace(/[()]/g, '') : ''),
       address: escapeSpecialChars(address) || '',
-      userEmail: recipientEmail // Include the full email address
+      engineer: escapeSpecialChars(engineer) // Use engineer in the template
     };
 
-    // Log the template data to verify the email
-    console.log("Template data:", templateData);
+    console.log("Template Data:", templateData); // Log template data for debugging
 
     doc.setData(templateData);
     doc.render();
@@ -104,21 +93,10 @@ export const exportToWord = async ({
     saveAs(out, exportEmptyNotes ? 'blank_output.docx' : 'output.docx');
   } catch (error) {
     console.error("Error exporting to Word:", error);
-    if (error.properties && error.properties.errors) {
-      console.error("Detailed error information:");
-      error.properties.errors.forEach((err, index) => {
-        console.error(`Error ${index + 1}:`, err);
-        console.error("Context:", error.properties.context[index]);
-      });
-    }
-    if (error.stack) {
-      console.error("Stack trace:", error.stack);
-    }
     alert("Error exporting to Word. Please check the console for details.");
   }
 };
 
-// Keep the button component as it is
 const WordExport = (props) => {
   return (
     <button onClick={() => exportToWord(props)} className="btn btn-success mt-3">

@@ -11,8 +11,8 @@ const ExportForm = ({
   setPermitNumber,
   address,
   setAddress,
-  userEmail,
-  setUserEmail, // Include userEmail and its setter
+  engineer, // Capture engineer's name
+  setEngineer, // Function to update engineer's name
 }) => {
   return (
     <div>
@@ -76,17 +76,16 @@ const ExportForm = ({
         <label htmlFor="floatingAddress">Address</label>
       </div>
 
-      {/* New User Email Field */}
       <div className="form-floating mb-3">
         <input
           type="text"
           className="form-control"
-          id="floatingUserEmail"
-          placeholder="User Email"
-          value={userEmail}
-          onChange={(e) => setUserEmail(e.target.value)}
+          id="floatingEngineer"
+          placeholder="Engineer Name"
+          value={engineer} // Capture engineer's name
+          onChange={(e) => setEngineer(e.target.value)} // Update engineer's state
         />
-        <label htmlFor="floatingUserEmail">User Email</label>
+        <label htmlFor="floatingEngineer">Engineer Name</label>
       </div>
     </div>
   );
