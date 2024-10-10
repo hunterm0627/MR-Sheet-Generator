@@ -1,18 +1,18 @@
 {
   "files": {
     "main.css": "/static/css/main.ffb666a3.css",
-    "main.js": "/static/js/main.e18d144d.js",
+    "main.js": "/static/js/main.e844a523.js",
     "static/js/453.dbd7ddd4.chunk.js": "/static/js/453.dbd7ddd4.chunk.js",
     "static/media/TechServ_logo.jpg": "/static/media/TechServ_logo.d59f5d50623c591cc070.jpg",
     "static/media/PNMlogo-ColorPos.png": "/static/media/PNMlogo-ColorPos.03b2d6d0ac42db834536.png",
     "static/media/TechServ_SecondaryLogo_White.svg": "/static/media/TechServ_SecondaryLogo_White.6914748af2b5d6a8f7843108e2fcc35a.svg",
     "index.html": "/index.html",
     "main.ffb666a3.css.map": "/static/css/main.ffb666a3.css.map",
-    "main.e18d144d.js.map": "/static/js/main.e18d144d.js.map",
+    "main.e844a523.js.map": "/static/js/main.e844a523.js.map",
     "453.dbd7ddd4.chunk.js.map": "/static/js/453.dbd7ddd4.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ffb666a3.css",
-    "static/js/main.e18d144d.js"
+    "static/js/main.e844a523.js"
   ]
 }
