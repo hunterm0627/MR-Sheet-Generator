@@ -27,16 +27,16 @@ const DocumentPreview = ({ name, constructionCoordinator, address, date, permitN
             <div className="document-content mt-3">
                 <p className="date">Date: <PlaceholderText actualText={date}>MM/DD/YYYY</PlaceholderText></p>
                 <p><strong>Name:</strong> <PlaceholderText actualText={name}>Name goes here</PlaceholderText></p>
-                <p><strong>Email:</strong> <PlaceholderText actualText={engineer}>username</PlaceholderText>@techserv.com</p> {/* Engineer with domain */}
                 <p><strong>Construction Coordinator:</strong> <PlaceholderText actualText={constructionCoordinator}>Coordinator goes here</PlaceholderText></p>
                 <p><strong>Subject:</strong> <PlaceholderText actualText={permitNumber}>Permit number goes here</PlaceholderText></p>
                 <p><strong>Address:</strong> <PlaceholderText actualText={address}>Address goes here</PlaceholderText></p>
 
-                <div className="dummy-text">
+                <div className="dummy-text mb-3">
                     <div className="line"></div>
                     <div className="line"></div>
                     <div className="line short"></div>
                 </div>
+                <p><strong>Email:</strong> <PlaceholderText actualText={engineer}>username</PlaceholderText>@techserv.com</p> {/* Engineer with domain */}
             </div>
 
             <div className="zigzag-bottom"></div>

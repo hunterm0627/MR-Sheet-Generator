@@ -24,7 +24,7 @@ export const exportToWord = async ({
   permitNumber,
   address,
   date,
-  engineer // Use engineer directly
+  engineer
 }) => {
   try {
     if (!data || data.length === 0) {
@@ -34,7 +34,7 @@ export const exportToWord = async ({
     }
 
     console.log("Exporting data:", data);
-    console.log("Engineer Name:", engineer); // Log engineer for debugging
+    console.log("Engineer Name:", engineer);
 
     const response = await fetch(exportEmptyNotes ? blankTemplatePath : templatePath);
     if (!response.ok) throw new Error('Network response was not ok');
@@ -53,8 +53,10 @@ export const exportToWord = async ({
     const results = data.map((item, index) => {
       let comments = [];
       if (!exportEmptyNotes) {
-        let notes = showProcessedNotes ? item.mrNote : item.transformedMakeReadyNotes;
-        notes = typeof notes === 'string' ? notes.split('\n').filter(note => note.trim() !== '') : [];
+        let notes = item.transformedMakeReadyNotes;
+        notes = Array.isArray(notes) ? notes : (typeof notes === 'string' ? notes.split('\n') : []);
+        notes = notes.filter(note => note.trim() !== '');
+        
         comments = [
           ...notes,
           "All licensees to ensure equipment/cable is properly tagged for identification.",
@@ -66,9 +68,16 @@ export const exportToWord = async ({
         ].filter(Boolean); 
       }
 
+      let poleNumber;
+      if (item.MR_type === "No Design") {
+        poleNumber = '<w:r><w:rPr><w:color w:val="FF0000"/></w:rPr><w:t>NO DESIGN</w:t></w:r>';
+      } else {
+        poleNumber = escapeSpecialChars(item.poleNumber) || 'N/A';
+      }
+
       return {
         scid: (index + 1).toString(),
-        PoleNumber: escapeSpecialChars(item.poleNumber) || 'N/A',
+        PoleNumber: poleNumber,
         noAccess: item.isPoleReplacement ? 'NO ACCESS' : '',
         comments: comments
       };
@@ -81,10 +90,11 @@ export const exportToWord = async ({
       coordinator: escapeSpecialChars(coordinator) || '',
       permitNumber: escapeSpecialChars(permitNumber ? permitNumber.replace(/[()]/g, '') : ''),
       address: escapeSpecialChars(address) || '',
-      engineer: escapeSpecialChars(engineer) // Use engineer in the template
+      engineer: escapeSpecialChars(engineer)
     };
+    console.log('Data before export:', data);
 
-    console.log("Template Data:", templateData); // Log template data for debugging
+    console.log("Template Data:", templateData);
 
     doc.setData(templateData);
     doc.render();
